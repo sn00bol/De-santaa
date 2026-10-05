@@ -1,0 +1,5 @@
+`backup.js` creates an atomic ZIP archive of the application data while excluding environment files and using SQLite's online backup API for database files. In Docker, create `.backups/` on the host and run `docker compose --profile tools run --rm backup` from the repository root. The opt-in Watchtower service invokes the same backup before an update and skips that update on backup failure.
+
+`fallback.js` interactively restores an archive into the current project directory. Stop the bot first, verify the selected archive, and test restores against a disposable copy before depending on this recovery path.
+
+Watchtower is an opt-in Docker image updater. Its upstream project was archived in December 2025, so keep it disabled unless its maintenance and Docker socket risks are acceptable.

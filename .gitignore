@@ -1,0 +1,17 @@
+# enviroment file
+.env
+
+# node modules
+node_modules/
+
+# Database
+database/*.db*
+database/bosses_memory/
+
+# others
+database/inflation.json
+test/
+**/*.test.js
+**/*.test.cjs
+.scrap_dbtest/
+.backups/

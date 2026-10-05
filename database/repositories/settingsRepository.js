@@ -1,0 +1,59 @@
+function createSettingsRepository(getDatabase) {
+    async function recordUserActivity(userId, timestamp = Date.now(), force = false) {
+        const db = getDatabase();
+        return db.run(`
+            INSERT INTO user_activity (user_id, last_command_at)
+            SELECT ?, ?
+            WHERE ? = 1 OR EXISTS (
+                SELECT 1 FROM user_settings
+                WHERE user_id = ? AND setting_id = 'passive' AND value = 1
+            )
+            ON CONFLICT(user_id) DO UPDATE SET last_command_at = excluded.last_command_at
+        `, [userId, timestamp, force ? 1 : 0, userId]);
+    }
+
+    return {
+        async getHelpPreference(userId) {
+            const row = await getDatabase().get(
+                'SELECT last_categories FROM help_preferences WHERE user_id = ?',
+                [userId]
+            );
+            if (!row || !row.last_categories) return ['all'];
+            try {
+                const parsed = JSON.parse(row.last_categories);
+                return Array.isArray(parsed) && parsed.length > 0 ? parsed : ['all'];
+            } catch {
+                return [row.last_categories];
+            }
+        },
+
+        async setHelpPreference(userId, categories) {
+            const value = JSON.stringify(Array.isArray(categories) ? categories : [categories]);
+            return getDatabase().run(`
+                INSERT INTO help_preferences (user_id, last_categories)
+                VALUES (?, ?)
+                ON CONFLICT(user_id) DO UPDATE SET last_categories = excluded.last_categories
+            `, [userId, value]);
+        },
+
+        async ensureDefaultUserSettings(userId) {
+            const result = await getDatabase().run(`
+                INSERT OR IGNORE INTO user_settings (user_id, setting_id, value)
+                SELECT ?, defaults.setting_id, 1
+                FROM (
+                    SELECT 'reminder' AS setting_id
+                    UNION ALL SELECT 'daily_reminder'
+                    UNION ALL SELECT 'lvl_notifi'
+                ) AS defaults
+                WHERE NOT EXISTS (
+                    SELECT 1 FROM user_settings WHERE user_id = ?
+                )
+            `, [userId, userId]);
+            return result.changes > 0;
+        },
+
+        recordUserActivity,
+    };
+}
+
+module.exports = { createSettingsRepository };
