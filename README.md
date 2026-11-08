@@ -67,7 +67,7 @@ If you're planning to modify Santaa, add commands, develop features, or debug th
 
 (Do step 1. and step 2. in FOR NON-DEVELOPER)
 
-Now, because docker currently running simillar like npm run start which is mean there no fast cooldown support so I prefer you to use traditional `npm run`, there three ways to use it:
+Now, because docker currently running simillar like npm run start and De-Santaa version not including fast cooldown support (cuz it not exists) so I prefer you to use traditional `npm run`, there three ways to use it:
 ```
 npm run start  # daily usage
 
